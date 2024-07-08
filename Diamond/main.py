@@ -1,14 +1,14 @@
+"""
+Importing all required packages.
+"""
+import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import sklearn.preprocessing as preprocessing
-import sklearn.model_selection as model_selection
-import sklearn.ensemble as ensemble
+from sklearn import preprocessing, model_selection, metrics
 import xgboost as xgb
-import sklearn.metrics as metrics
-from math import sqrt
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import zscore
-import statsmodels.stats.outliers_influence as outliers_influence
 
 def load_data(file_path):
     """
@@ -22,8 +22,8 @@ def load_data(file_path):
     """
     try:
         diamond = pd.read_csv(file_path, index_col=0, header=0)
-    except FileNotFoundError:
-        raise Exception(f"The file {file_path} does not exist.")
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"The file {file_path} does not exist.") from exc
     except pd.errors.EmptyDataError:
         raise Exception("No data found in the CSV file.")
     except pd.errors.ParserError:
@@ -99,7 +99,7 @@ def remove_outliers(df):
 
 def initial_preprocess(df):
     """
-    Perform initial preprocessing: remove invalid values, drop duplicates, apply bounds, and remove outliers.
+    Perform initial preprocessing: remove invalid values, outliers, drop duplicates, apply bounds.
 
     Parameters:
     df (pd.DataFrame): The input DataFrame.
@@ -152,7 +152,7 @@ def correct_positive_skewness(df, skewed_cols):
 
 def calculate_vif(df):
     """
-    Calculate Variance Inflation Factor (VIF) to detect multicollinearity and remove features with high VIF.
+    Calculate VIF to detect multicollinearity and remove features with high VIF.
 
     Parameters:
     df (pd.DataFrame): The input DataFrame.
@@ -162,7 +162,7 @@ def calculate_vif(df):
     """
     vif_data = pd.DataFrame()
     vif_data["feature"] = df.columns
-    vif_data["VIF"] = [outliers_influence.variance_inflation_factor(df.values, i) for i in range(len(df.columns))]
+    vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(len(df.columns))]
     high_vif_cols = vif_data[vif_data['VIF'] > 400]['feature'].tolist()
     df.drop(high_vif_cols, axis=1, inplace=True)
     return df
@@ -181,26 +181,26 @@ def plot_residuals(y_test, y_pred):
     plt.ylabel('Frequency')
     plt.title('Histogram of Residuals')
 
-def train_and_evaluate_model(X_train, X_test, y_train, y_test):
+def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     """
     Train and evaluate the XGBoost model.
 
     Parameters:
-    X_train (np.ndarray): Training features.
-    X_test (np.ndarray): Testing features.
+    x_train (np.ndarray): Training features.
+    x_test (np.ndarray): Testing features.
     y_train (pd.Series): Training target.
     y_test (pd.Series): Testing target.
 
     Returns:
     float: Root Mean Squared Error (RMSE) of the model.
     """
-    xgboost = xgb.XGBRegressor(n_estimators=300, learning_rate=0.04, 
-                               min_child_weight=4, subsample=0.8, 
+    xgboost = xgb.XGBRegressor(n_estimators=300, learning_rate=0.04,
+                               min_child_weight=4, subsample=0.8,
                                colsample_bytree=0.8, random_state=1)
-    xgboost.fit(X_train, y_train)
-    y_pred = xgboost.predict(X_test)
+    xgboost.fit(x_train, y_train)
+    y_pred = xgboost.predict(x_test)
     plot_residuals(y_test, y_pred)
-    rmse = sqrt(metrics.mean_squared_error(y_test, y_pred))
+    rmse = math.sqrt(metrics.mean_squared_error(y_test, y_pred))
     return rmse
 
 def main():
@@ -209,8 +209,14 @@ def main():
     """
     try:
         diamond_data = load_data('diamonds.csv')
-    except Exception as e:
-        print(e)
+    except FileNotFoundError as exc:
+        print(f"The file {exc.filename} does not exist.")
+        return
+    except pd.errors.EmptyDataError:
+        print("No data found in the CSV file.")
+        return
+    except pd.errors.ParserError:
+        print("Error parsing the CSV file.")
         return
 
     diamond_data = initial_preprocess(diamond_data)
@@ -221,12 +227,11 @@ def main():
     X = diamond_data.drop('price', axis=1)
     y = diamond_data['price']
     scaler = preprocessing.StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = model_selection.train_test_split(X_scaled, y, test_size=0.2, random_state=1)
-    
-    rmse = train_and_evaluate_model(X_train, X_test, y_train, y_test)
+    x_scaled = scaler.fit_transform(X)
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(x_scaled, y, test_size=0.2, random_state=1)
+    rmse = train_and_evaluate_model(x_train, x_test, y_train, y_test)
 
-    print("RMSE: " + str(rmse))
+    print("RMSE:", rmse)
 
     plt.show()
 
