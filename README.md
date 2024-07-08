@@ -51,5 +51,3 @@ Place your dataset in CSV format named diamonds.csv in the same directory as the
 8.  **z:** Depth in mm. (0 to 31.8)
 9.  **Depth:** Total depth percentage, z divided by mean(x, y). (43 to 79)
 10.  **Table:** Width of top of diamond relative to widest point. (43 to 95)
-
-Run the script to obtain results.
