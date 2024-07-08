@@ -1,0 +1,31 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+img_color = cv2.imread('ball.jpg')
+img_1 = cv2.imread('1.png')
+img_2 = cv2.imread('2.png')
+img_grayscale = cv2.imread('ball.jpg', cv2.IMREAD_GRAYSCALE)
+img_equalized = cv2.equalizeHist(img_grayscale)
+img_split1, img_split2, img_split3 = cv2.split(img_color)
+img_rgb = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
+img_bgr = cv2.merge((img_split1,img_split2,img_split3))
+img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
+img_add = cv2.add(img_color, img_color)
+img_sub = cv2.subtract(img_add, img_color)
+img_add1 = cv2.add(img_1, img_2)
+img_sub1 = cv2.subtract(img_1, img_2)
+
+cv2.imwrite('colored_ball.jpg', img_color)
+cv2.imwrite('grayscaled_ball.jpg', img_grayscale)
+cv2.imwrite('equalized_ball.jpg', img_equalized)
+cv2.imwrite('blue_ball.jpg', img_split1)
+cv2.imwrite('green_ball.jpg', img_split2)
+cv2.imwrite('red_ball.jpg', img_split3)
+cv2.imwrite('rgb_ball.jpg', img_rgb)
+cv2.imwrite('bgr_ball.jpg', img_bgr)
+cv2.imwrite('hsv_ball.jpg', img_hsv)
+cv2.imwrite('added_ball.jpg', img_add)
+cv2.imwrite('subtracted_ball.jpg', img_sub)
+cv2.imwrite('added_ball1.jpg', img_add1)
+cv2.imwrite('subtracted_ball1.jpg', img_sub1)
