@@ -3,11 +3,20 @@
 This Python script is designed to predict diamond prices using machine learning techniques. It utilizes the following libraries:
 
 pandas for data manipulation
+
 numpy for numerical computations
+
 matplotlib for plotting
+
 sklearn for preprocessing, model selection, and metrics
+
 xgboost for gradient boosting
+
 statsmodels for statistical computations
+
+joblib to save the trained model
+
+streamlit for the front end
 
 ## Functions Provided:
 
