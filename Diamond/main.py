@@ -1,4 +1,4 @@
-"""
+""""
 Importing all required packages.
 """
 import math
@@ -9,29 +9,26 @@ from sklearn import preprocessing, model_selection, metrics
 import xgboost as xgb
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import zscore
-import streamlit as st
+import joblib
 
-def load_data(file):
+def load_data(file_path):
     """
     Load data from a CSV file.
 
     Parameters:
-    file (str): The path to the CSV file.
+    file_path (str): The path to the CSV file.
 
     Returns:
     pd.DataFrame: The loaded DataFrame.
     """
     try:
-        diamond = pd.read_csv(file, index_col=0, header=0)
+        diamond = pd.read_csv(file_path, index_col=0, header=0)
     except FileNotFoundError as exc:
-        st.error("The file path does not exist.")
-        return None
+        raise FileNotFoundError("The file path does not exist.") from exc
     except pd.errors.EmptyDataError:
-        st.error("No data found in the CSV file.")
-        return None
+        raise Exception("No data found in the CSV file.") from exc
     except pd.errors.ParserError:
-        st.error("Error parsing the CSV file.")
-        return None
+        raise Exception("Error parsing the CSV file.") from exc
     return diamond
 
 def remove_invalid_values(df):
@@ -184,7 +181,6 @@ def plot_residuals(y_test, y_pred):
     plt.xlabel('Residuals')
     plt.ylabel('Frequency')
     plt.title('Histogram of Residuals')
-    st.pyplot(plt)
 
 def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     """
@@ -204,45 +200,42 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
                                colsample_bytree=0.8, random_state=1)
     xgboost.fit(x_train, y_train)
     y_pred = xgboost.predict(x_test)
+    plot_residuals(y_test, y_pred)
     rmse = math.sqrt(metrics.mean_squared_error(y_test, y_pred))
-    return rmse, y_pred
+    joblib.dump(xgboost, 'xgboost_model.pkl')
+    return rmse
 
 def main():
     """
     Main function to execute the data loading, preprocessing, training, and evaluation.
     """
-    st.title("Diamond Price Prediction")
+    try:
+        diamond_data = load_data('diamonds.csv')
+    except FileNotFoundError as exc:
+        print(f"The file {exc.filename} does not exist.")
+        return
+    except pd.errors.EmptyDataError:
+        print("No data found in the CSV file.")
+        return
+    except pd.errors.ParserError:
+        print("Error parsing the CSV file.")
+        return
 
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-    if uploaded_file is not None:
-        try:
-            diamond_data = load_data(uploaded_file)
-            if diamond_data is None:
-                return
-            st.write("Data loaded successfully")
-        except Exception as e:
-            st.error(f"Error loading data: {e}")
-            return
+    diamond_data = initial_preprocess(diamond_data)
+    diamond_data = encode_categorical(diamond_data)
+    diamond_data = correct_positive_skewness(diamond_data, ['carat', 'table', 'x', 'y'])
+    diamond_data = calculate_vif(diamond_data)
 
-        st.write("Here's a preview of your data:")
-        st.write(diamond_data.head())
+    x = diamond_data.drop('price', axis=1)
+    y = diamond_data['price']
+    scaler = preprocessing.StandardScaler()
+    x_scaled = scaler.fit_transform(x)
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(x_scaled, y, test_size=0.2, random_state=1)
+    rmse = train_and_evaluate_model(x_train, x_test, y_train, y_test)
 
-        cleaned_data = initial_preprocess(diamond_data)
-        encoded_data = encode_categorical(cleaned_data)
-        unskewed_data = correct_positive_skewness(encoded_data, ['carat', 'table', 'x', 'y'])
-        final_data = calculate_vif(unskewed_data)
+    print("RMSE:", rmse)
 
-        x = final_data.drop('price', axis=1)
-        y = final_data['price']
-        scaler = preprocessing.StandardScaler()
-        x_scaled = scaler.fit_transform(x)
-        x_train, x_test, y_train, y_test = model_selection.train_test_split(x_scaled, y, test_size=0.2, random_state=1)
-
-        rmse, y_pred = train_and_evaluate_model(x_train, x_test, y_train, y_test)
-
-        st.write(f"RMSE: {rmse}")
-
-        plot_residuals(y_test, y_pred)
+    plt.show()
 
 if __name__ == "__main__":
     main()
