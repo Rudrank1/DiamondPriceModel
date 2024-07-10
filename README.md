@@ -21,5 +21,7 @@ This Python script is designed to predict diamond prices using machine learning 
 ## How to Use:
 
 **1.** Run using **streamlit app.py**
+
 **2.** Input the carat, cut, color and clarity of the diamond
+
 **3.** Click to predict button to obtain the predicted price
