@@ -1,2 +1,9 @@
 [core]
     no_scm = True
+    remote = main
+['remote "myremote"']
+    url = azure://diamondcont/firstpush
+['remote "main"']
+    url = azure://diamondcont/firstpush
+    account_name = diamonddvc
+    account_key = kRqhmmiCURSI4k0He4skvFM9DCiSXXg9IMiJsgtrEKQszQQOqciSIM4cBTu68xdbO07QA6HDKFh7+AStwtg2wQ==
