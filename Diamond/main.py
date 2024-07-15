@@ -10,6 +10,8 @@ import xgboost as xgb
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import zscore
 import joblib
+import dvc.api
+import os
 
 def load_data(file_path):
     """
@@ -22,7 +24,8 @@ def load_data(file_path):
     pd.DataFrame: The loaded DataFrame.
     """
     try:
-        diamond = pd.read_csv(file_path, index_col=0, header=0)
+        with dvc.api.open(file_path, repo=os.getcwd()) as f:
+            diamond = pd.read_csv(f, index_col=0, header=0)
     except FileNotFoundError as exc:
         raise FileNotFoundError("The file path does not exist.") from exc
     except pd.errors.EmptyDataError:
