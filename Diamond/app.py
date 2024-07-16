@@ -34,6 +34,11 @@ input_data = pd.DataFrame({
     'clarity': [clarity]
 })
 
+# Correcting the skewness of carat, length and width
+input_data['carat'] = np.log(input_data['carat'])
+input_data['x'] = np.log(input_data['x'])
+input_data['y'] = np.log(input_data['y'])
+
 # Mappings to convert categorical features to numerical
 cut_mapping = {'Fair': 0, 'Good': 1, 'Very Good': 2, 'Premium': 3, 'Ideal': 4}
 color_mapping = {'J': 0, 'I': 1, 'H': 2, 'G': 3, 'F': 4, 'E': 5, 'D': 6}
