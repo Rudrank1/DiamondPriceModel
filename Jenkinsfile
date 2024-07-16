@@ -2,15 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('Check Streamlit Location') {
-            steps {
-                script {
-                    def streamlitInfo = sh(script: 'pip3 show streamlit | grep Location', returnStdout: true).trim()
-                    echo "Streamlit is located at: ${streamlitInfo}"
-                }
-            }
-        }
-
         stage('Clone repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/Rudrank1/DiamondPriceModel.git'
@@ -29,7 +20,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'streamlit run Diamond/app.py'
+                        sh '/Users/rudrank/Library/Python/3.9/bin/streamlit run Diamond/app.py'
                     } catch (Exception e) {
                         error "Script execution failed: ${e.getMessage()}"
                     }
