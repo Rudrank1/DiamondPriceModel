@@ -11,7 +11,7 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
-                    sh 'pip3 install -r requirements.txt'
+                    sh 'pip3 install -r Diamond/requirements.txt'
                 }
             }
         }
@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'app.py'
+                        sh 'python3 Diamond/app.py'
                     } catch (Exception e) {
                         error "Script execution failed: ${e.getMessage()}"
                     }
