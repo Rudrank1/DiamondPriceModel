@@ -4,7 +4,6 @@ Importing all required packages.
 import os
 import signal
 import streamlit as st
-from sklearn import preprocessing
 import pandas as pd
 import numpy as np
 import joblib
@@ -50,13 +49,9 @@ input_data['cut'] = input_data['cut'].map(cut_mapping)
 input_data['color'] = input_data['color'].map(color_mapping)
 input_data['clarity'] = input_data['clarity'].map(clarity_mapping)
 
-# Normalizing the data before prediction
-scaler = preprocessing.StandardScaler()
-inpur_scaled = scaler.fit_transform(input_data)
-
 # Predict the price when the button is clicked
 if st.button("Predict"):
-    prediction = model.predict(inpur_scaled)
+    prediction = model.predict(input_data)
     st.write(f"Predicted Price: ${prediction[0]:.2f}")
 # Add the button to stop the Streamlit app
 if st.button("Stop Streamlit App"):
