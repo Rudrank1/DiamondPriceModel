@@ -1,9 +1,12 @@
+""""
+Importing all required packages.
+"""
+import os
+import signal
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import os
-import signal
 
 # Load the pre-trained model
 model = joblib.load('Diamond/xgboost_model.pkl')

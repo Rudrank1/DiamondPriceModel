@@ -1,12 +1,8 @@
 ************* Module main
-main.py:233:0: C0301: Line too long (115/100) (line-too-long)
-main.py:29:8: W0719: Raising too general exception: Exception (broad-exception-raised)
-main.py:31:8: W0719: Raising too general exception: Exception (broad-exception-raised)
-************* Module app
-app.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-app.py:3:0: W0611: Unused numpy imported as np (unused-import)
-app.py:4:0: W0611: Unused preprocessing imported from sklearn (unused-import)
+main.py:236:0: C0301: Line too long (115/100) (line-too-long)
+main.py:32:8: W0719: Raising too general exception: Exception (broad-exception-raised)
+main.py:34:8: W0719: Raising too general exception: Exception (broad-exception-raised)
 
 ------------------------------------------------------------------
-Your code has been rated at 9.55/10 (previous run: 9.55/10, +0.00)
+Your code has been rated at 9.79/10 (previous run: 9.73/10, +0.07)
 

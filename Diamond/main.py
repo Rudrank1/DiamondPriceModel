@@ -1,6 +1,7 @@
 """"
 Importing all required packages.
 """
+import os
 import math
 import pandas as pd
 import numpy as np
@@ -11,7 +12,6 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import zscore
 import joblib
 import dvc.api
-import os
 
 def load_data(file_path):
     """
