@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone repository') {
             steps {
-                git 'https://github.com/Rudrank1/DiamondPriceModel.git'
+                git branch: 'main', url: 'https://github.com/Rudrank1/DiamondPriceModel.git'
             }
         }
 
