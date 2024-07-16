@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'python3 Diamond/app.py'
+                        sh 'streamlit run Diamond/app.py'
                     } catch (Exception e) {
                         error "Script execution failed: ${e.getMessage()}"
                     }
