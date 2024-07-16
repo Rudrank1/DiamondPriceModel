@@ -167,7 +167,7 @@ def calculate_vif(df):
     vif_data = pd.DataFrame()
     vif_data["feature"] = df.columns
     vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(len(df.columns))]
-    high_vif_cols = vif_data[vif_data['VIF'] > 400]['feature'].tolist()
+    high_vif_cols = ['depth', 'table']
     df.drop(high_vif_cols, axis=1, inplace=True)
     return df
 

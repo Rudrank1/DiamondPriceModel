@@ -11,7 +11,10 @@ model = joblib.load('xgboost_model.pkl')
 st.title("Diamond Price Prediction")
 
 # User inputs for the features required for prediction
-carat = st.number_input("Carat", min_value=0.2, max_value=5.01, value=0.5, step=0.01)
+carat = st.number_input("Carat", min_value=0.1, max_value=5.01, value=0.5, step=0.01)
+x = st.number_input("Length", min_value=0.1, max_value=10.74, value=5.0, step=0.1)
+y = st.number_input("Breadth", min_value=0.1, max_value=58.9, value=10.0, step=0.1)
+z = st.number_input("Width", min_value=0.1, max_value=31.8, value=5.0, step=0.1)
 cut = st.selectbox("Cut", ['Fair', 'Good', 'Very Good', 'Premium', 'Ideal'])
 color = st.selectbox("Color", ['D', 'E', 'F', 'G', 'H', 'I', 'J'])
 clarity = st.selectbox("Clarity", ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VVS1', 'IF'])
@@ -19,6 +22,9 @@ clarity = st.selectbox("Clarity", ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VV
 # Create a DataFrame from the user input
 input_data = pd.DataFrame({
     'carat': [carat],
+    'x': [x],
+    'y': [y],
+    'z': [z],
     'cut': [cut],
     'color': [color],
     'clarity': [clarity]

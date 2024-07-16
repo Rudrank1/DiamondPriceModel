@@ -1,6 +1,7 @@
 [core]
     no_scm = True
     remote = main
+    autostage = true
 ['remote "myremote"']
     url = azure://diamondcont/firstpush
 ['remote "main"']
