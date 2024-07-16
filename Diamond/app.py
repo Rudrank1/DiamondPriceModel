@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn import preprocessing
 import joblib
+import os
+import signal
 
 # Load the pre-trained model
 model = joblib.load('Diamond/xgboost_model.pkl')
@@ -30,8 +31,10 @@ input_data = pd.DataFrame({
     'clarity': [clarity]
 })
 
-# Correcting the skewness of carat
+# Correcting the skewness of carat, length and width
 input_data['carat'] = np.log(input_data['carat'])
+input_data['x'] = np.log(input_data['x'])
+input_data['y'] = np.log(input_data['y'])
 
 # Mappings to convert categorical features to numerical
 cut_mapping = {'Fair': 0, 'Good': 1, 'Very Good': 2, 'Premium': 3, 'Ideal': 4}
@@ -47,3 +50,7 @@ input_data['clarity'] = input_data['clarity'].map(clarity_mapping)
 if st.button("Predict"):
     prediction = model.predict(input_data)
     st.write(f"Predicted Price: ${prediction[0]:.2f}")
+# Add the button to stop the Streamlit app
+if st.button("Stop Streamlit App"):
+    st.write("Stopping the app...")
+    os.kill(os.getpid(), signal.SIGTERM)
