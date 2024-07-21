@@ -16,14 +16,6 @@ pipeline {
             }
         }
 
-        stage('Install dependencies') {
-            steps {
-                script {
-                    sh 'pip3 install -r Diamond/requirements.txt'
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
