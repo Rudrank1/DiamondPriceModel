@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        DOCKER_HUB_CREDENTIALS = credentials('111')
         DOCKER_IMAGE = 'rudy12/diamond-prediction-model:latest'
-        AZURE_CREDENTIALS = credentials('azure-service-principal')
+        AZURE_CREDENTIALS = credentials('222')
         AZURE_WEB_APP_NAME = 'diamond-price-prediction-model'
         AZURE_RESOURCE_GROUP = 'testgroup'
     }
