@@ -9,7 +9,7 @@ import numpy as np
 import joblib
 
 # Load the pre-trained model
-model = joblib.load('Diamond/xgboost_model.pkl')
+model = joblib.load('xgboost_model.pkl')
 
 # Set up the Streamlit app title
 st.title("Diamond Price Prediction")
