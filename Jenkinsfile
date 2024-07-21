@@ -24,18 +24,6 @@ pipeline {
             }
         }
 
-        stage('Run script') {
-            steps {
-                script {
-                    try {
-                        sh '/Users/rudrank/Library/Python/3.9/bin/streamlit run Diamond/app.py'
-                    } catch (Exception e) {
-                        error "Script execution failed: ${e.getMessage()}"
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
