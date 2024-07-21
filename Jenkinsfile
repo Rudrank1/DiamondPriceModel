@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker'
+    }
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('111')
@@ -38,7 +40,7 @@ pipeline {
         stage('Deploy to Azure Web App') {
             steps {
                 script {
-                    withCredentials([azureServicePrincipal(credentialsId: 'azure-service-principal')]) {
+                    withCredentials([azureServicePrincipal(credentialsId: '222')]) {
                         sh """
                             az login --service-principal -u $AZURE_CREDENTIALS_USR -p $AZURE_CREDENTIALS_PSW --tenant $AZURE_CREDENTIALS_TENANT
                             az webapp config container set --name $AZURE_WEB_APP_NAME --resource-group $AZURE_RESOURCE_GROUP --docker-custom-image-name $DOCKER_IMAGE
