@@ -1,14 +1,11 @@
 pipeline {
-    agent {
-        label 'docker'
-    }
+    agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('111')
-        DOCKER_IMAGE = 'rudy12/diamond-prediction-model:latest'
-        AZURE_CREDENTIALS = credentials('222')
-        AZURE_WEB_APP_NAME = 'diamond-price-prediction-model'
-        AZURE_RESOURCE_GROUP = 'testgroup'
+        AZURE_WEBAPP_NAME = 'Diamond-Price-Prediction-Model'
+        AZURE_RESOURCE_GROUP = 'appgroup'
+        AZURE_CREDENTIALS_ID = '222'
+        AZURE_SUBSCRIPTION_ID = 'c8661fb5-0aff-452a-8693-e440206a5a0b'
     }
 
     stages {
@@ -18,32 +15,26 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install dependencies') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    sh 'pip3 install -r Diamond/requirements.txt'
                 }
             }
         }
 
-        stage('Push Docker Image to Docker Hub') {
+        stage('Deploy to Azure') {
             steps {
                 script {
-                    sh """
-                        echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                        docker push $DOCKER_IMAGE
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to Azure Web App') {
-            steps {
-                script {
-                    withCredentials([azureServicePrincipal(credentialsId: '222')]) {
+                    withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
                         sh """
-                            az login --service-principal -u $AZURE_CREDENTIALS_USR -p $AZURE_CREDENTIALS_PSW --tenant $AZURE_CREDENTIALS_TENANT
-                            az webapp config container set --name $AZURE_WEB_APP_NAME --resource-group $AZURE_RESOURCE_GROUP --docker-custom-image-name $DOCKER_IMAGE
+                        az webapp up --name ${env.AZURE_WEBAPP_NAME} \
+                                     --resource-group ${env.AZURE_RESOURCE_GROUP} \
+                                     --sku F1 \
+                                     --location centralus \
+                                     --plan myAppServicePlan \
+                                     --runtime "PYTHON|3.9" \
+                                     --subscription ${env.AZURE_SUBSCRIPTION_ID}
                         """
                     }
                 }
