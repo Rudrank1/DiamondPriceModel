@@ -28,7 +28,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t diamondmodel:latest -f Diamond/Dockerfile Diamonds/
+        docker build -t diamondmodel:latest -f Diamond/Dockerfile Diamond/
 
     - name: Login to Docker Hub
       env:
