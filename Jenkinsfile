@@ -18,18 +18,14 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                script {
-                    sh 'pip3 install -r Diamond/requirements.txt'
-                }
+                sh 'pip3 install -r Diamond/requirements.txt'
             }
         }
 
         stage('Install Azure CLI') {
             steps {
                 script {
-                    sh '''
-                    curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-                    '''
+                    sh 'pip3 install azure-cli'
                 }
             }
         }
