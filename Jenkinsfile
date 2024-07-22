@@ -38,12 +38,15 @@ pipeline {
                         ${AZ_PATH} login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                         '''
 
-                        // Deploy the web app code
-                        sh '''
-                        ${AZ_PATH} webapp deployment source config-zip --resource-group $AZURE_RESOURCE_GROUP \
-                                                                      --name $AZURE_WEBAPP_NAME \
-                                                                      --src app_code.zip
-                        '''
+                        // Retry deployment with a delay
+                        retry(3) {
+                            sh '''
+                            ${AZ_PATH} webapp deployment source config-zip --resource-group $AZURE_RESOURCE_GROUP \
+                                                                          --name $AZURE_WEBAPP_NAME \
+                                                                          --src app_code.zip
+                            '''
+                            sleep(time: 60, unit: 'SECONDS')  // Add a delay to avoid conflicts
+                        }
                     }
                 }
             }
