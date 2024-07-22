@@ -23,6 +23,12 @@ pipeline {
             }
         }
 
+        stage('Package Code') {
+            steps {
+                sh 'cd Diamond && zip -r ../app_code.zip .'
+            }
+        }
+
         stage('Deploy to Azure') {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
@@ -32,18 +38,22 @@ pipeline {
                         ${AZ_PATH} login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                         '''
 
-                        // Deploy the web app
+                        // Deploy the web app code
                         sh '''
-                        ${AZ_PATH} webapp up --name $AZURE_WEBAPP_NAME \
-                                             --resource-group $AZURE_RESOURCE_GROUP \
-                                             --sku F1 \
-                                             --location $LOCATION \
-                                             --plan "$APP_SERVICE_PLAN" \
-                                             --runtime "PYTHON|3.9"
+                        ${AZ_PATH} webapp deployment source config-zip --resource-group $AZURE_RESOURCE_GROUP \
+                                                                      --name $AZURE_WEBAPP_NAME \
+                                                                      --src app_code.zip
                         '''
                     }
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            // Clean up zip file
+            sh 'rm -f app_code.zip'
         }
     }
 }
