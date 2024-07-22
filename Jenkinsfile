@@ -5,7 +5,7 @@ pipeline {
         AZURE_WEBAPP_NAME = 'Diamond-Price-Prediction-Model'
         AZURE_RESOURCE_GROUP = 'appgroup'
         AZURE_CREDENTIALS_ID = '222'
-        LOCATION = 'Australia Central'
+        LOCATION = 'australiacentral'
         APP_SERVICE_PLAN = 'ASP-appgroup-a2df (F1: 1)'
         AZ_PATH = '/usr/local/bin/az'
     }
@@ -20,15 +20,6 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 sh 'pip3 install -r Diamond/requirements.txt'
-            }
-        }
-
-        stage('Install Azure CLI') {
-            steps {
-                script {
-                    // Optional: Reinstall Azure CLI to ensure availability
-                    sh 'pip3 install azure-cli'
-                }
             }
         }
 
