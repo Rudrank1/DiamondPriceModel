@@ -7,6 +7,7 @@ pipeline {
         AZURE_CREDENTIALS_ID = '222'
         LOCATION = 'Australia Central'
         APP_SERVICE_PLAN = 'ASP-appgroup-a2df (F1: 1)'
+        AZ_PATH = '/usr/local/bin/az'
     }
 
     stages {
@@ -22,10 +23,10 @@ pipeline {
             }
         }
 
-        // Skip if Azure CLI is already installed
         stage('Install Azure CLI') {
             steps {
                 script {
+                    // Optional: Reinstall Azure CLI to ensure availability
                     sh 'pip3 install azure-cli'
                 }
             }
@@ -36,12 +37,12 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
                     script {
                         sh '''
-                        az webapp up --name $AZURE_WEBAPP_NAME \
-                                     --resource-group $AZURE_RESOURCE_GROUP \
-                                     --sku F1 \
-                                     --location $LOCATION \
-                                     --plan $APP_SERVICE_PLAN \
-                                     --runtime "PYTHON|3.9"
+                        ${AZ_PATH} webapp up --name $AZURE_WEBAPP_NAME \
+                                             --resource-group $AZURE_RESOURCE_GROUP \
+                                             --sku F1 \
+                                             --location $LOCATION \
+                                             --plan "$APP_SERVICE_PLAN" \
+                                             --runtime "PYTHON|3.9"
                         '''
                     }
                 }
