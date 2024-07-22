@@ -5,7 +5,8 @@ pipeline {
         AZURE_WEBAPP_NAME = 'Diamond-Price-Prediction-Model'
         AZURE_RESOURCE_GROUP = 'appgroup'
         AZURE_CREDENTIALS_ID = '222'
-        AZURE_SUBSCRIPTION_ID = 'c8661fb5-0aff-452a-8693-e440206a5a0b'
+        LOCATION = 'Australia Central'
+        APP_SERVICE_PLAN = 'ASP-appgroup-a2df (F1: 1)'
     }
 
     stages {
@@ -23,18 +24,26 @@ pipeline {
             }
         }
 
-        stage('Deploy to Azure') {
+        stage('Install Azure CLI') {
             steps {
                 script {
-                    withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
+                    sh 'curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash'
+                }
+            }
+        }
+
+        stage('Deploy to Azure') {
+            steps {
+                withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
+                    script {
+                        // Use environment variables for sensitive values
                         sh """
                         az webapp up --name ${env.AZURE_WEBAPP_NAME} \
                                      --resource-group ${env.AZURE_RESOURCE_GROUP} \
                                      --sku F1 \
-                                     --location centralus \
-                                     --plan myAppServicePlan \
-                                     --runtime "PYTHON|3.9" \
-                                     --subscription ${env.AZURE_SUBSCRIPTION_ID}
+                                     --location ${env.LOCATION} \
+                                     --plan ${env.APP_SERVICE_PLAN} \
+                                     --runtime "PYTHON|3.9"
                         """
                     }
                 }
