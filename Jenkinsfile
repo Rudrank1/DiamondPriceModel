@@ -27,6 +27,12 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
                     script {
+                        // Authenticate with Azure CLI using the Service Principal
+                        sh '''
+                        ${AZ_PATH} login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+                        '''
+
+                        // Deploy the web app
                         sh '''
                         ${AZ_PATH} webapp up --name $AZURE_WEBAPP_NAME \
                                              --resource-group $AZURE_RESOURCE_GROUP \
