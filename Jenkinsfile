@@ -38,12 +38,13 @@ pipeline {
                         ${AZ_PATH} login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                         '''
 
-                        // Retry deployment with a delay
+                        // Retry deployment with a delay and verbose logging
                         retry(3) {
                             sh '''
                             ${AZ_PATH} webapp deployment source config-zip --resource-group $AZURE_RESOURCE_GROUP \
                                                                           --name $AZURE_WEBAPP_NAME \
-                                                                          --src app_code.zip
+                                                                          --src app_code.zip \
+                                                                          --verbose
                             '''
                             sleep(time: 60, unit: 'SECONDS')  // Add a delay to avoid conflicts
                         }
