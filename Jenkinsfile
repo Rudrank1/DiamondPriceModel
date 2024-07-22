@@ -6,7 +6,7 @@ pipeline {
         AZURE_RESOURCE_GROUP = 'appgroup'
         AZURE_CREDENTIALS_ID = '222'
         LOCATION = 'australiacentral'
-        APP_SERVICE_PLAN = 'ASP-appgroup-a2df (F1: 1)'
+        APP_SERVICE_PLAN = 'ASP-appgroup-a2df'
         AZ_PATH = '/usr/local/bin/az'
     }
 
