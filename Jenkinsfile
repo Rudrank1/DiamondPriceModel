@@ -25,7 +25,9 @@ pipeline {
         stage('Install Azure CLI') {
             steps {
                 script {
-                    sh 'pip3 install azure-cli'
+                    sh '''
+                    curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+                    '''
                 }
             }
         }
@@ -35,11 +37,11 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: "${env.AZURE_CREDENTIALS_ID}")]) {
                     script {
                         sh '''
-                        az webapp up --name ${env.AZURE_WEBAPP_NAME} \
-                                     --resource-group ${env.AZURE_RESOURCE_GROUP} \
+                        az webapp up --name ${AZURE_WEBAPP_NAME} \
+                                     --resource-group ${AZURE_RESOURCE_GROUP} \
                                      --sku F1 \
-                                     --location ${env.LOCATION} \
-                                     --plan ${env.APP_SERVICE_PLAN} \
+                                     --location ${LOCATION} \
+                                     --plan ${APP_SERVICE_PLAN} \
                                      --runtime "PYTHON|3.9"
                         '''
                     }
