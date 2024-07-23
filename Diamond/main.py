@@ -233,7 +233,7 @@ def main():
     x = diamond_data[features]
     y = diamond_data['price']
 
-    x1, x2, y1, y2 = model_selection.train_test_split(x, y, test_size=0.3, random_state=1)
+    x1, x2, y1, y2 = model_selection.train_test_split(x, y, test_size=0.2, random_state=1)
     train_and_evaluate_model(x1, x2, y1, y2)
 
 if __name__ == "__main__":
