@@ -189,33 +189,50 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     x_train_scaled = scaler.fit_transform(x_train)
     x_test_scaled = scaler.transform(x_test)
 
+    # Expanded hyperparameters for RandomizedSearchCV
     param_dist = {
-        'n_estimators': [100, 150, 200],
-        'learning_rate': [0.01, 0.05, 0.1],
-        'max_depth': [3, 4, 5],
-        'min_child_weight': [1, 2, 3],
-        'subsample': [0.8, 0.9, 1.0],
-        'colsample_bytree': [0.8, 0.9, 1.0]
+        'n_estimators': [100, 200, 300, 400, 500],
+        'learning_rate': [0.01, 0.03, 0.05, 0.07, 0.1, 0.2],
+        'max_depth': [3, 4, 5, 6, 7, 8],
+        'min_child_weight': [1, 2, 3, 4, 5],
+        'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
+        'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
+        'gamma': [0, 0.1, 0.2, 0.3, 0.4, 0.5],
+        'reg_alpha': [0, 0.01, 0.1, 1],
+        'reg_lambda': [1, 0.1, 0.01, 0]
     }
 
+    # Initialize XGBoost regressor
     xgboost = xgb.XGBRegressor(random_state=1)
+
+    # Initialize RandomizedSearchCV
     random_search = model_selection.RandomizedSearchCV(
         estimator=xgboost,
         param_distributions=param_dist,
-        n_iter=100,
+        n_iter=100,  # Increase the number of iterations
         cv=5,
         scoring='neg_mean_squared_error',
         n_jobs=-1,
         random_state=1
     )
 
+    # Train the model
     random_search.fit(x_train_scaled, y_train)
     best_model = random_search.best_estimator_
 
+    # Predict using the best model
     y_pred = best_model.predict(x_test_scaled)
+
+    # Calculate RMSE
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
+
+    # Save the model
     joblib.dump(best_model, 'xgboost_model.pkl')
+
+    # Print RMSE
     print('RMSE: ' + str(rmse))
+
+    # Plot residuals
     plot_residuals(y_test, y_pred)
 
 def main():
