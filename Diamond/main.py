@@ -1,29 +1,12 @@
-"""
-Importing all necessary libraries
-"""
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import preprocessing, model_selection, metrics
-import xgboost as xgb
+import lightgbm as lgb
 from scipy.stats import zscore
 import joblib
 
 def load_data(file_path):
-    """
-    Load data from a CSV file.
-
-    Parameters:
-    file_path (str): The path to the CSV file.
-
-    Returns:
-    pd.DataFrame: The loaded DataFrame.
-
-    Raises:
-    FileNotFoundError: If the file path does not exist.
-    pd.errors.EmptyDataError: If no data is found in the CSV file.
-    pd.errors.ParserError: If there is an error parsing the CSV file.
-    """
     try:
         diamond = pd.read_csv(file_path, index_col=0, header=0)
     except FileNotFoundError as exc:
@@ -38,39 +21,12 @@ def load_data(file_path):
     return diamond
 
 def remove_invalid_values(df):
-    """
-    Remove rows with zero values.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The DataFrame with rows containing zero values removed.
-    """
     return df[(df != 0).all(axis=1)]
 
 def drop_duplicates(df):
-    """
-    Remove duplicate rows.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The DataFrame with duplicate rows removed.
-    """
     return df.drop_duplicates()
 
 def apply_bounds(df):
-    """
-    Apply bounds to filter the DataFrame based on domain knowledge.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The filtered DataFrame based on predefined bounds and conditions.
-    """
     conditions = {
         'price': (326, 18823),
         'carat': (0.2, 5.01),
@@ -97,29 +53,11 @@ def apply_bounds(df):
     return df
 
 def remove_outliers(df):
-    """
-    Remove outliers using Z-score method.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The DataFrame with outliers removed.
-    """
     numeric_columns = df.select_dtypes(include=np.number).columns.tolist()
     z_scores = np.abs(zscore(df[numeric_columns]))
     return df[(z_scores < 3).all(axis=1)]
 
 def initial_preprocess(df):
-    """
-    Perform initial preprocessing: remove invalid values, outliers, drop duplicates, apply bounds.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The preprocessed DataFrame.
-    """
     df = remove_invalid_values(df)
     df = drop_duplicates(df)
     df = apply_bounds(df)
@@ -127,15 +65,6 @@ def initial_preprocess(df):
     return df
 
 def encode_categorical(df):
-    """
-    Encode categorical features using LabelEncoder.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The DataFrame with encoded categorical features.
-    """
     label_encoder = preprocessing.LabelEncoder()
     df['cut'] = label_encoder.fit_transform(df['cut'])
     df['color'] = label_encoder.fit_transform(df['color'])
@@ -143,27 +72,10 @@ def encode_categorical(df):
     return df
 
 def correct_positive_skewness(df, skewed_cols):
-    """
-    Correct positive skewness in specified columns using logarithmic transformation.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-    skewed_cols (list): List of column names to apply the transformation.
-
-    Returns:
-    pd.DataFrame: The DataFrame with corrected skewness.
-    """
     df[skewed_cols] = np.log(df[skewed_cols])
     return df
 
 def plot_residuals(y_test, y_pred):
-    """
-    Plot histogram of residuals.
-
-    Parameters:
-    y_test (pd.Series): Actual values.
-    y_pred (pd.Series): Predicted values.
-    """
     residuals = y_test - y_pred
     plt.hist(residuals, bins=30, edgecolor='k')
     plt.xlabel('Residuals')
@@ -172,34 +84,17 @@ def plot_residuals(y_test, y_pred):
     plt.show()
 
 def train_and_evaluate_model(x_train, x_test, y_train, y_test):
-    """
-    Train and evaluate the XGBoost model with hyperparameter tuning using RandomizedSearchCV.
-
-    Parameters:
-    x_train (np.ndarray): Training features.
-    x_test (np.ndarray): Testing features.
-    y_train (pd.Series): Training target.
-    y_test (pd.Series): Testing target.
-
-    Returns:
-    float: Root Mean Squared Error (RMSE) of the model.
-    """
     param_dist = {
+        'num_leaves': [31, 41, 51, 61],
+        'learning_rate': [0.01, 0.05, 0.1, 0.15],
         'n_estimators': [100, 200, 300, 400, 500],
-        'learning_rate': [0.01, 0.03, 0.05, 0.07, 0.1, 0.2],
-        'max_depth': [3, 4, 5, 6, 7, 8],
-        'min_child_weight': [1, 2, 3, 4, 5],
-        'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
-        'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
-        'gamma': [0, 0.1, 0.2, 0.3, 0.4, 0.5],
-        'reg_alpha': [0, 0.01, 0.1, 1],
-        'reg_lambda': [1, 0.1, 0.01, 0]
+        'min_child_samples': [20, 30, 40, 50]
     }
     
-    xgboost = xgb.XGBRegressor(random_state=1)
+    lgbm = lgb.LGBMRegressor(random_state=1, verbose=0)
     
     random_search = model_selection.RandomizedSearchCV(
-        estimator=xgboost,
+        estimator=lgbm,
         param_distributions=param_dist,
         n_iter=100,
         cv=5,
@@ -214,16 +109,13 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
     
-    joblib.dump(best_model, 'xgboost_model.pkl')
+    joblib.dump(best_model, 'lightgbm_model.pkl')
     
     print('RMSE: ' + str(rmse))
     
     plot_residuals(y_test, y_pred)
 
 def main():
-    """
-    Main function to load data, preprocess, train, and evaluate the model.
-    """
     file_path = 'diamonds.csv'
     diamond_data = load_data(file_path)
 
