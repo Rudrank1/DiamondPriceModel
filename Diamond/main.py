@@ -5,12 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import preprocessing, model_selection, metrics
-from sklearn.linear_model import LinearRegression
-from sklearn.feature_selection import RFE
-from sklearn.model_selection import RandomizedSearchCV
 import xgboost as xgb
 from scipy.stats import zscore
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 import joblib
 
 def load_data(file_path):
@@ -87,7 +83,7 @@ def apply_bounds(df):
         'depth': (43, 79),
         'table': (43, 95)
     }
-    
+
     df = df[(df['price'].between(*conditions['price'])) &
             (df['carat'].between(*conditions['carat'])) &
             (df['cut'].isin(conditions['cut'])) &
@@ -188,6 +184,11 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     Returns:
     float: Root Mean Squared Error (RMSE) of the model.
     """
+    # Scale the features
+    scaler = preprocessing.StandardScaler()
+    x_train_scaled = scaler.fit_transform(x_train)
+    x_test_scaled = scaler.transform(x_test)
+
     param_dist = {
         'n_estimators': [100, 150, 200],
         'learning_rate': [0.01, 0.05, 0.1],
@@ -196,9 +197,9 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
         'subsample': [0.8, 0.9, 1.0],
         'colsample_bytree': [0.8, 0.9, 1.0]
     }
-    
+
     xgboost = xgb.XGBRegressor(random_state=1)
-    random_search = RandomizedSearchCV(
+    random_search = model_selection.RandomizedSearchCV(
         estimator=xgboost,
         param_distributions=param_dist,
         n_iter=20,
@@ -207,15 +208,15 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
         n_jobs=-1,
         random_state=1
     )
-    
-    random_search.fit(x_train, y_train)
+
+    random_search.fit(x_train_scaled, y_train)
     best_model = random_search.best_estimator_
 
-    y_pred = best_model.predict(x_test)
-    plot_residuals(y_test, y_pred)
+    y_pred = best_model.predict(x_test_scaled)
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
     joblib.dump(best_model, 'xgboost_model.pkl')
-    return rmse
+    print('RMSE: ' + str(rmse))
+    plot_residuals(y_test, y_pred)
 
 def main():
     """
@@ -223,20 +224,17 @@ def main():
     """
     file_path = 'diamonds.csv'
     diamond_data = load_data(file_path)
-    
+
     diamond_data = initial_preprocess(diamond_data)
     diamond_data = encode_categorical(diamond_data)
     diamond_data = correct_positive_skewness(diamond_data, ['carat' ,'x', 'y'])
-    
+
     features = ['carat', 'cut', 'color', 'clarity', 'x', 'y', 'z']
-    X = diamond_data[features]
+    x = diamond_data[features]
     y = diamond_data['price']
-    
-    x_train, x_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2, random_state=1)
-    
-    # Train and evaluate using RandomizedSearchCV
-    rmse = train_and_evaluate_model(x_train, x_test, y_train, y_test)
-    print(f'RMSE from RandomizedSearchCV: {rmse}')
+
+    x1, x2, y1, y2 = model_selection.train_test_split(x, y, test_size=0.5, random_state=1)
+    train_and_evaluate_model(x1, x2, y1, y2)
 
 if __name__ == "__main__":
     main()

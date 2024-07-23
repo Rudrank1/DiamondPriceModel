@@ -51,4 +51,3 @@ input_data['clarity'] = input_data['clarity'].map(clarity_mapping)
 if st.button("Predict"):
     prediction = model.predict(input_data)
     st.write(f"Predicted Price: ${prediction[0]:.2f}")
- 

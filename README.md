@@ -8,11 +8,9 @@ This Python script is designed to predict diamond prices using machine learning 
 
 **-matplotlib** for plotting
 
-**-sklearn** for preprocessing, model selection, and metrics
+**-scikit-learn** for preprocessing, model selection, and metrics
 
 **-xgboost** for gradient boosting
-
-**-statsmodels** for statistical computations
 
 **-joblib** to save the trained model
 
