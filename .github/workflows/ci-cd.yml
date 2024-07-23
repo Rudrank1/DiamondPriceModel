@@ -24,11 +24,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r Diamonds/requirements.txt
+        pip install -r Diamond/requirements.txt
 
     - name: Build Docker image
       run: |
-        docker build -t diamondmodel:latest -f Diamonds/Dockerfile Diamonds/
+        docker build -t diamondmodel:latest -f Diamond/Dockerfile Diamond/
 
     - name: Login to Docker Hub
       env:
