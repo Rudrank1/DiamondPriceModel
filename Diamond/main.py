@@ -202,7 +202,7 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     random_search = model_selection.RandomizedSearchCV(
         estimator=xgboost,
         param_distributions=param_dist,
-        n_iter=20,
+        n_iter=100,
         cv=5,
         scoring='neg_mean_squared_error',
         n_jobs=-1,
