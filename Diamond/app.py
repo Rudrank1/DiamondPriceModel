@@ -1,3 +1,6 @@
+"""
+Importing all necessary libraries
+"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -21,12 +24,12 @@ clarity = st.selectbox("Clarity", ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VV
 # Create a DataFrame from the user input
 input_data = pd.DataFrame({
     'carat': [carat],
-    'x': [x],
-    'y': [y],
-    'z': [z],
     'cut': [cut],
     'color': [color],
-    'clarity': [clarity]
+    'clarity': [clarity],
+    'x': [x],
+    'y': [y],
+    'z': [z]
 })
 
 # Correcting the skewness of carat, length and width

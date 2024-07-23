@@ -1,17 +1,17 @@
 """
-Importing all required packages.
+Importing all necessary libraries
 """
-import os
-import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import preprocessing, model_selection, metrics
+from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import RFE
+from sklearn.model_selection import RandomizedSearchCV
 import xgboost as xgb
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import zscore
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 import joblib
-import dvc.api
 
 def load_data(file_path):
     """
@@ -22,16 +22,23 @@ def load_data(file_path):
 
     Returns:
     pd.DataFrame: The loaded DataFrame.
+
+    Raises:
+    FileNotFoundError: If the file path does not exist.
+    pd.errors.EmptyDataError: If no data is found in the CSV file.
+    pd.errors.ParserError: If there is an error parsing the CSV file.
     """
     try:
-        with dvc.api.open(file_path, repo=os.getcwd()) as f:
-            diamond = pd.read_csv(f, index_col=0, header=0)
+        diamond = pd.read_csv(file_path, index_col=0, header=0)
     except FileNotFoundError as exc:
-        raise FileNotFoundError("The file path does not exist.") from exc
+        print("The file path does not exist.")
+        raise exc
     except pd.errors.EmptyDataError:
-        raise Exception("No data found in the CSV file.") from exc
+        print("No data found in the CSV file.")
+        raise
     except pd.errors.ParserError:
-        raise Exception("Error parsing the CSV file.") from exc
+        print("Error parsing the CSV file.")
+        raise
     return diamond
 
 def remove_invalid_values(df):
@@ -42,10 +49,9 @@ def remove_invalid_values(df):
     df (pd.DataFrame): The input DataFrame.
 
     Returns:
-    pd.DataFrame: The DataFrame with invalid values removed.
+    pd.DataFrame: The DataFrame with rows containing zero values removed.
     """
-    df = df[(df != 0).all(axis=1)]
-    return df
+    return df[(df != 0).all(axis=1)]
 
 def drop_duplicates(df):
     """
@@ -55,10 +61,9 @@ def drop_duplicates(df):
     df (pd.DataFrame): The input DataFrame.
 
     Returns:
-    pd.DataFrame: The DataFrame with duplicates removed.
+    pd.DataFrame: The DataFrame with duplicate rows removed.
     """
-    df = df.drop_duplicates()
-    return df
+    return df.drop_duplicates()
 
 def apply_bounds(df):
     """
@@ -68,22 +73,31 @@ def apply_bounds(df):
     df (pd.DataFrame): The input DataFrame.
 
     Returns:
-    pd.DataFrame: The filtered DataFrame.
+    pd.DataFrame: The filtered DataFrame based on predefined bounds and conditions.
     """
-    price_condition = (df['price'] >= 326) & (df['price'] <= 18823)
-    carat_condition = (df['carat'] >= 0.2) & (df['carat'] <= 5.01)
-    cut_condition = df['cut'].isin(['Fair', 'Good', 'Very Good', 'Premium', 'Ideal'])
-    color_condition = df['color'].isin(['D', 'E', 'F', 'G', 'H', 'I', 'J'])
-    clarity_condition = df['clarity'].isin(['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VVS1', 'IF'])
-    x_condition = df['x'] <= 10.74
-    y_condition = df['y'] <= 58.9
-    z_condition = df['z'] <= 31.8
-    depth_condition = (df['depth'] >= 43) & (df['depth'] <= 79)
-    table_condition = (df['table'] >= 43) & (df['table'] <= 95)
-
-    df = df[carat_condition & cut_condition & color_condition & clarity_condition &
-            depth_condition & table_condition & price_condition & x_condition &
-            y_condition & z_condition]
+    conditions = {
+        'price': (326, 18823),
+        'carat': (0.2, 5.01),
+        'cut': ['Fair', 'Good', 'Very Good', 'Premium', 'Ideal'],
+        'color': ['D', 'E', 'F', 'G', 'H', 'I', 'J'],
+        'clarity': ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VVS1', 'IF'],
+        'x': (None, 10.74),
+        'y': (None, 58.9),
+        'z': (None, 31.8),
+        'depth': (43, 79),
+        'table': (43, 95)
+    }
+    
+    df = df[(df['price'].between(*conditions['price'])) &
+            (df['carat'].between(*conditions['carat'])) &
+            (df['cut'].isin(conditions['cut'])) &
+            (df['color'].isin(conditions['color'])) &
+            (df['clarity'].isin(conditions['clarity'])) &
+            (df['x'] <= conditions['x'][1]) &
+            (df['y'] <= conditions['y'][1]) &
+            (df['z'] <= conditions['z'][1]) &
+            (df['depth'].between(*conditions['depth'])) &
+            (df['table'].between(*conditions['table']))]
     return df
 
 def remove_outliers(df):
@@ -98,8 +112,7 @@ def remove_outliers(df):
     """
     numeric_columns = df.select_dtypes(include=np.number).columns.tolist()
     z_scores = np.abs(zscore(df[numeric_columns]))
-    df_no_outliers = df[(z_scores < 3).all(axis=1)]
-    return df_no_outliers
+    return df[(z_scores < 3).all(axis=1)]
 
 def initial_preprocess(df):
     """
@@ -128,16 +141,9 @@ def encode_categorical(df):
     pd.DataFrame: The DataFrame with encoded categorical features.
     """
     label_encoder = preprocessing.LabelEncoder()
-    cut_order = {'Fair': 0, 'Good': 1, 'Very Good': 2, 'Premium': 3, 'Ideal': 4}
-    color_order = {'J': 0, 'I': 1, 'H': 2, 'G': 3, 'F': 4, 'E': 5, 'D': 6}
-    clarity_order = {'I1': 0, 'SI2': 1, 'SI1': 2, 'VS2': 3, 'VS1': 4, 'VVS2': 5, 'VVS1': 6, 'IF': 7}
-    df['cut_mapped'] = df['cut'].map(cut_order)
-    df['color_mapped'] = df['color'].map(color_order)
-    df['clarity_mapped'] = df['clarity'].map(clarity_order)
-    df['cut'] = label_encoder.fit_transform(df['cut_mapped'])
-    df['color'] = label_encoder.fit_transform(df['color_mapped'])
-    df['clarity'] = label_encoder.fit_transform(df['clarity_mapped'])
-    df.drop(['cut_mapped', 'color_mapped', 'clarity_mapped'], axis=1, inplace=True)
+    df['cut'] = label_encoder.fit_transform(df['cut'])
+    df['color'] = label_encoder.fit_transform(df['color'])
+    df['clarity'] = label_encoder.fit_transform(df['clarity'])
     return df
 
 def correct_positive_skewness(df, skewed_cols):
@@ -154,23 +160,6 @@ def correct_positive_skewness(df, skewed_cols):
     df[skewed_cols] = np.log(df[skewed_cols])
     return df
 
-def calculate_vif(df):
-    """
-    Calculate VIF to detect multicollinearity and remove features with high VIF.
-
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    pd.DataFrame: The DataFrame with high VIF features removed.
-    """
-    vif_data = pd.DataFrame()
-    vif_data["feature"] = df.columns
-    vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(len(df.columns))]
-    high_vif_cols = ['depth', 'table']
-    df.drop(high_vif_cols, axis=1, inplace=True)
-    return df
-
 def plot_residuals(y_test, y_pred):
     """
     Plot histogram of residuals.
@@ -184,10 +173,11 @@ def plot_residuals(y_test, y_pred):
     plt.xlabel('Residuals')
     plt.ylabel('Frequency')
     plt.title('Histogram of Residuals')
+    plt.show()
 
 def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     """
-    Train and evaluate the XGBoost model.
+    Train and evaluate the XGBoost model with hyperparameter tuning using RandomizedSearchCV.
 
     Parameters:
     x_train (np.ndarray): Training features.
@@ -198,47 +188,55 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     Returns:
     float: Root Mean Squared Error (RMSE) of the model.
     """
-    xgboost = xgb.XGBRegressor(n_estimators=300, learning_rate=0.04,
-                               min_child_weight=4, subsample=0.8,
-                               colsample_bytree=0.8, random_state=1)
-    xgboost.fit(x_train, y_train)
-    y_pred = xgboost.predict(x_test)
+    param_dist = {
+        'n_estimators': [100, 150, 200],
+        'learning_rate': [0.01, 0.05, 0.1],
+        'max_depth': [3, 4, 5],
+        'min_child_weight': [1, 2, 3],
+        'subsample': [0.8, 0.9, 1.0],
+        'colsample_bytree': [0.8, 0.9, 1.0]
+    }
+    
+    xgboost = xgb.XGBRegressor(random_state=1)
+    random_search = RandomizedSearchCV(
+        estimator=xgboost,
+        param_distributions=param_dist,
+        n_iter=20,
+        cv=5,
+        scoring='neg_mean_squared_error',
+        n_jobs=-1,
+        random_state=1
+    )
+    
+    random_search.fit(x_train, y_train)
+    best_model = random_search.best_estimator_
+
+    y_pred = best_model.predict(x_test)
     plot_residuals(y_test, y_pred)
-    rmse = math.sqrt(metrics.mean_squared_error(y_test, y_pred))
-    joblib.dump(xgboost, 'xgboost_model.pkl')
+    rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
+    joblib.dump(best_model, 'xgboost_model.pkl')
     return rmse
 
 def main():
     """
-    Main function to execute the data loading, preprocessing, training, and evaluation.
+    Main function to load data, preprocess, train, and evaluate the model.
     """
-    try:
-        diamond_data = load_data('diamonds.csv')
-    except FileNotFoundError as exc:
-        print(f"The file {exc.filename} does not exist.")
-        return
-    except pd.errors.EmptyDataError:
-        print("No data found in the CSV file.")
-        return
-    except pd.errors.ParserError:
-        print("Error parsing the CSV file.")
-        return
-
+    file_path = 'diamonds.csv'
+    diamond_data = load_data(file_path)
+    
     diamond_data = initial_preprocess(diamond_data)
     diamond_data = encode_categorical(diamond_data)
-    diamond_data = correct_positive_skewness(diamond_data, ['carat', 'table', 'x', 'y'])
-    diamond_data = calculate_vif(diamond_data)
-
-    x = diamond_data.drop('price', axis=1)
+    diamond_data = correct_positive_skewness(diamond_data, ['carat' ,'x', 'y'])
+    
+    features = ['carat', 'cut', 'color', 'clarity', 'x', 'y', 'z']
+    X = diamond_data[features]
     y = diamond_data['price']
-    scaler = preprocessing.StandardScaler()
-    x_scaled = scaler.fit_transform(x)
-    x_train, x_test, y_train, y_test = model_selection.train_test_split(x_scaled, y, test_size=0.2, random_state=1)
+    
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2, random_state=1)
+    
+    # Train and evaluate using RandomizedSearchCV
     rmse = train_and_evaluate_model(x_train, x_test, y_train, y_test)
-
-    print("RMSE:", rmse)
-
-    plt.show()
+    print(f'RMSE from RandomizedSearchCV: {rmse}')
 
 if __name__ == "__main__":
     main()
