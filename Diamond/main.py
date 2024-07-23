@@ -184,10 +184,6 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     Returns:
     float: Root Mean Squared Error (RMSE) of the model.
     """
-    # Scale the features
-    scaler = preprocessing.StandardScaler()
-    x_train_scaled = scaler.fit_transform(x_train)
-    x_test_scaled = scaler.transform(x_test)
 
     # Expanded hyperparameters for RandomizedSearchCV
     param_dist = {
@@ -217,11 +213,11 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
     )
 
     # Train the model
-    random_search.fit(x_train_scaled, y_train)
+    random_search.fit(x_train, y_train)
     best_model = random_search.best_estimator_
 
     # Predict using the best model
-    y_pred = best_model.predict(x_test_scaled)
+    y_pred = best_model.predict(x_test)
 
     # Calculate RMSE
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
