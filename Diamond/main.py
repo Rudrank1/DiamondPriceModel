@@ -207,7 +207,6 @@ def train_and_evaluate_model(x_train, x_test, y_train, y_test):
         n_jobs=-1,
         random_state=1
     )
-    
     random_search.fit(x_train, y_train)
     best_model = random_search.best_estimator_
     
