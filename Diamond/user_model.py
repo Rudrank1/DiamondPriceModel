@@ -2,7 +2,7 @@ import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import preprocessing
-from modeling import train_lightgbm, train_xgboost, train_catboost, train_adaboost, train_histgradientboosting
+from modeling import train_xgboost, train_catboost, train_adaboost, train_histgradientboosting
 
 def train_user_model(data, model_type):
     # Preprocess the data
@@ -24,9 +24,7 @@ def train_user_model(data, model_type):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     # Train the model based on the chosen type
-    if model_type == 'LightGBM':
-        model = train_lightgbm(X_train, y_train)
-    elif model_type == 'XGBoost':
+    if model_type == 'XGBoost':
         model = train_xgboost(X_train, y_train)
     elif model_type == 'CatBoost':
         model = train_catboost(X_train, y_train)

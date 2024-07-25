@@ -20,8 +20,7 @@ if not get_session_state():
 
 # Define background colors for each model
 background_colors = {
-    'LightGBM': '#692e2e',
-    'XGBoost': '#5d2e69',
+    'XGBoost': '#692e2e',
     'CatBoost': '#692e4b',
     'AdaBoost': '#2e4b69',
     'HistGradientBoosting': '#0d4a13',
@@ -30,7 +29,6 @@ background_colors = {
 
 # Load all pre-trained models
 models = {
-    'LightGBM': joblib.load('models/LightGBM_model.pkl'),
     'XGBoost': joblib.load('models/XGBoost_model.pkl'),
     'CatBoost': joblib.load('models/CatBoost_model.pkl'),
     'AdaBoost': joblib.load('models/AdaBoost_model.pkl'),

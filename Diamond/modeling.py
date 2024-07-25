@@ -4,7 +4,6 @@ import numpy as np
 from sklearn import metrics
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.ensemble import AdaBoostRegressor, HistGradientBoostingRegressor
-import lightgbm as lgb
 import xgboost as xgb
 import catboost as cat
 import matplotlib.pyplot as plt
@@ -14,11 +13,13 @@ def plot_residuals(y_tests, y_preds, model_names):
     Plot residuals for each model and save to the 'Data' folder.
     """
 
-    fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(18, 18))
+    fig, axes = plt.subplots(nrows=3, ncols=6, figsize=(24, 18))
     axes = axes.flatten()
     
     for i, (y_test, y_pred, model_name) in enumerate(zip(y_tests, y_preds, model_names)):
         residuals = y_test - y_pred
+        
+        # Scatter plot of residuals
         axes[i].scatter(y_pred, residuals, alpha=0.5)
         axes[i].hlines(y=0, xmin=min(y_pred), xmax=max(y_pred), colors='r')
         axes[i].set_xlabel('Predicted values')
@@ -26,27 +27,22 @@ def plot_residuals(y_tests, y_preds, model_names):
         axes[i].set_title(f'Residuals for {model_name}')
     
     plt.tight_layout()
-    plt.savefig('Data/residual_plots.png')  # Save residual plots as a PNG file
-    plt.close()  # Close the plot to free memory
+    plt.savefig('Data/residual_plots.png')
+    plt.close()
+    
+    # Plot histograms of residuals
+    fig_hist, axes_hist = plt.subplots(nrows=3, ncols=3, figsize=(18, 18))
+    axes_hist = axes_hist.flatten()
 
-def train_lightgbm(x_train, y_train):
-    param_grid = {
-        'num_leaves': [31, 41, 51, 61],
-        'learning_rate': [0.01, 0.05, 0.1, 0.15],
-        'n_estimators': [100, 200, 300, 400, 500],
-        'min_child_samples': [20, 30, 40, 50]
-    }
-    model = lgb.LGBMRegressor(random_state=1, verbose=-1)
-    search = RandomizedSearchCV(
-        estimator=model,
-        param_distributions=param_grid,
-        n_iter=100,
-        cv=5,
-        scoring='neg_mean_squared_error',
-        n_jobs=-1,
-        random_state=1
-    )
-    return search.fit(x_train, y_train)
+    for i, (residuals, model_name) in enumerate(zip([y_test - y_pred for y_test, y_pred in zip(y_tests, y_preds)], model_names)):
+        axes_hist[i].hist(residuals, bins=30, edgecolor='k', alpha=0.7)
+        axes_hist[i].set_xlabel('Residuals')
+        axes_hist[i].set_ylabel('Frequency')
+        axes_hist[i].set_title(f'Histogram of Residuals for {model_name}')
+    
+    plt.tight_layout()
+    plt.savefig('Data/residual_histograms.png')
+    plt.close()
 
 def train_xgboost(x_train, y_train):
     param_grid = {
@@ -131,7 +127,6 @@ def train_histgradientboosting(x_train, y_train):
 
 def train_and_evaluate_models(x_train, x_test, y_train, y_test):
     model_functions = {
-        'LightGBM': train_lightgbm,
         'XGBoost': train_xgboost,
         'CatBoost': train_catboost,
         'AdaBoost': train_adaboost,
