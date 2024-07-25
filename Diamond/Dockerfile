@@ -1,20 +1,14 @@
 # Use the official Python image from the Docker Hub
-FROM python:3.12
+FROM python:3.12-buster
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install the libgomp1 package and other necessary dependencies
-RUN apt-get update \
-    && apt-get install -y libgomp1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
-# Install the required Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install the required packages
+RUN pip install -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
