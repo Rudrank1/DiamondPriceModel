@@ -30,11 +30,11 @@ background_colors = {
 
 # Load all pre-trained models
 models = {
-    'LightGBM': joblib.load('lightgbm_model.pkl'),
-    'XGBoost': joblib.load('xgboost_model.pkl'),
-    'CatBoost': joblib.load('catboost_model.pkl'),
-    'AdaBoost': joblib.load('adaboost_model.pkl'),
-    'HistGradientBoosting': joblib.load('histgradientboosting_model.pkl')
+    'LightGBM': joblib.load('models/LightGBM_model.pkl'),
+    'XGBoost': joblib.load('models/XGBoost_model.pkl'),
+    'CatBoost': joblib.load('models/CatBoost_model.pkl'),
+    'AdaBoost': joblib.load('models/AdaBoost_model.pkl'),
+    'HistGradientBoosting': joblib.load('models/HistGradientBoosting_model.pkl')
 }
 
 # Sidebar for model selection

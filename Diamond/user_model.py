@@ -2,7 +2,7 @@ import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import preprocessing
-from modeling import train_lightgbm, train_xgboost, train_catboost, train_randomforest, train_adaboost, train_extratrees, train_histgradientboosting
+from modeling import train_lightgbm, train_xgboost, train_catboost, train_adaboost, train_histgradientboosting
 
 def train_user_model(data, model_type):
     # Preprocess the data
@@ -30,16 +30,12 @@ def train_user_model(data, model_type):
         model = train_xgboost(X_train, y_train)
     elif model_type == 'CatBoost':
         model = train_catboost(X_train, y_train)
-    elif model_type == 'RandomForest':
-        model = train_randomforest(X_train, y_train)
     elif model_type == 'AdaBoost':
         model = train_adaboost(X_train, y_train)
-    elif model_type == 'ExtraTrees':
-        model = train_extratrees(X_train, y_train)
     elif model_type == 'HistGradientBoosting':
         model = train_histgradientboosting(X_train, y_train)
     else:
         raise ValueError(f"Model type '{model_type}' is not recognized.")
     
     # Save the trained model
-    joblib.dump(model, 'user_model.pkl')
+    joblib.dump(model, 'models/user_model.pkl')
