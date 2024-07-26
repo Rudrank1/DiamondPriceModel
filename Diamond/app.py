@@ -205,6 +205,6 @@ if train_button:
     else:
         data = pd.read_csv(uploaded_file)
         st.sidebar.write("Dataset uploaded successfully!")
-        train_user_model(data, model_type)
         st.sidebar.write("Training Model...")
+        train_user_model(data, model_type)
         st.sidebar.success("Model trained and saved as user_model.pkl")
