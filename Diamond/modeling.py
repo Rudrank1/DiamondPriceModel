@@ -1,3 +1,6 @@
+"""
+Importing necessary packages
+"""
 import time
 import joblib
 import numpy as np
@@ -10,26 +13,30 @@ import matplotlib.pyplot as plt
 
 def plot_residuals(y_tests, y_preds, model_names):
     """
-    Plot residuals for each model and save to the 'Data' folder.
-    """
+    Plot residuals and histograms of residuals for each model and save them to the 'Data' folder.
 
+    Args:
+        y_tests (list of np.array): List of true values for each model.
+        y_preds (list of np.array): List of predicted values for each model.
+        model_names (list of str): List of model names corresponding to the predictions.
+    """
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(24, 16))
     axes = axes.flatten()
-    
+
     for i, (y_test, y_pred, model_name) in enumerate(zip(y_tests, y_preds, model_names)):
         residuals = y_test - y_pred
-        
+
         # Scatter plot of residuals
         axes[i].scatter(y_pred, residuals, alpha=0.5)
         axes[i].hlines(y=0, xmin=min(y_pred), xmax=max(y_pred), colors='r')
         axes[i].set_xlabel('Predicted values')
         axes[i].set_ylabel('Residuals')
         axes[i].set_title(f'Residuals for {model_name}')
-    
+
     plt.tight_layout()
     plt.savefig('Data/residual_plots.png')
     plt.close()
-    
+
     # Plot histograms of residuals
     fig_hist, axes_hist = plt.subplots(nrows=2, ncols=2, figsize=(18, 18))
     axes_hist = axes_hist.flatten()
@@ -39,12 +46,22 @@ def plot_residuals(y_tests, y_preds, model_names):
         axes_hist[i].set_xlabel('Residuals')
         axes_hist[i].set_ylabel('Frequency')
         axes_hist[i].set_title(f'Histogram of Residuals for {model_name}')
-    
+
     plt.tight_layout()
     plt.savefig('Data/residual_histograms.png')
     plt.close()
 
 def train_xgboost(x_train, y_train):
+    """
+    Train an XGBoost model using RandomizedSearchCV to optimize hyperparameters.
+
+    Args:
+        x_train (np.array): Training features.
+        y_train (np.array): Training target values.
+
+    Returns:
+        RandomizedSearchCV: The RandomizedSearchCV object fitted with the best parameters.
+    """
     param_grid = {
         'n_estimators': [100, 200, 300, 400, 500],
         'learning_rate': [0.01, 0.03, 0.05, 0.07, 0.1, 0.2],
@@ -69,6 +86,16 @@ def train_xgboost(x_train, y_train):
     return search.fit(x_train, y_train)
 
 def train_catboost(x_train, y_train):
+    """
+    Train a CatBoost model using RandomizedSearchCV to optimize hyperparameters.
+
+    Args:
+        x_train (np.array): Training features.
+        y_train (np.array): Training target values.
+
+    Returns:
+        RandomizedSearchCV: The RandomizedSearchCV object fitted with the best parameters.
+    """
     param_grid = {
         'iterations': [100, 200, 300, 400, 500],
         'learning_rate': [0.01, 0.03, 0.05, 0.07, 0.1, 0.2],
@@ -92,6 +119,16 @@ def train_catboost(x_train, y_train):
     return search.fit(x_train, y_train)
 
 def train_adaboost(x_train, y_train):
+    """
+    Train an AdaBoost model using GridSearchCV to optimize hyperparameters.
+
+    Args:
+        x_train (np.array): Training features.
+        y_train (np.array): Training target values.
+
+    Returns:
+        GridSearchCV: The GridSearchCV object fitted with the best parameters.
+    """
     param_grid = {
         'n_estimators': [50, 100, 150, 200],
         'learning_rate': [0.01, 0.1, 0.5, 1.0]
@@ -107,6 +144,16 @@ def train_adaboost(x_train, y_train):
     return search.fit(x_train, y_train)
 
 def train_histgradientboosting(x_train, y_train):
+    """
+    Train a HistGradientBoosting model using RandomizedSearchCV to optimize hyperparameters.
+
+    Args:
+        x_train (np.array): Training features.
+        y_train (np.array): Training target values.
+
+    Returns:
+        RandomizedSearchCV: The RandomizedSearchCV object fitted with the best parameters.
+    """
     param_grid = {
         'learning_rate': [0.01, 0.1, 0.5, 1.0],
         'max_iter': [100, 200, 300, 400, 500],
@@ -126,13 +173,25 @@ def train_histgradientboosting(x_train, y_train):
     return search.fit(x_train, y_train)
 
 def train_and_evaluate_models(x_train, x_test, y_train, y_test):
+    """
+    Train and evaluate multiple models, save the best models, and plot residuals.
+
+    Args:
+        x_train (np.array): Training features.
+        x_test (np.array): Test features.
+        y_train (np.array): Training target values.
+        y_test (np.array): Test target values.
+    
+    Returns:
+        None
+    """
     model_functions = {
         'XGBoost': train_xgboost,
         'CatBoost': train_catboost,
         'AdaBoost': train_adaboost,
         'HistGradientBoosting': train_histgradientboosting
     }
-    
+
     best_models = {}
     y_tests = []
     y_preds = []
@@ -142,27 +201,27 @@ def train_and_evaluate_models(x_train, x_test, y_train, y_test):
     for name, func in model_functions.items():
         print(f"Training {name}...")
         start_time = time.time()
-        
+
         search = func(x_train, y_train)
         best_model = search.best_estimator_
-        
+
         best_models[name] = best_model
         # Save the model with compression in the 'models' folder
         joblib.dump(best_model, f'models/{name}_model.pkl', compress=3)
-        
+
         y_pred = best_model.predict(x_test)
         y_preds.append(y_pred)
         y_tests.append(y_test)
         model_names.append(name)
-        
+
         rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
         rmse_results.append((name, rmse))
-        
+
         elapsed_time = time.time() - start_time
         print(f'Training time for {name}: {elapsed_time:.2f} seconds')
-    
+
     plot_residuals(y_tests, y_preds, model_names)
-    
+
     # Save RMSE results to a text file
     with open('Data/rmse_results.txt', 'w') as file:
         for name, rmse in rmse_results:

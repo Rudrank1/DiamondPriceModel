@@ -1,4 +1,21 @@
+************* Module app
+app.py:136:0: C0301: Line too long (106/100) (line-too-long)
+app.py:171:12: C0103: Constant name "selected_model" doesn't conform to UPPER_CASE naming style (invalid-name)
+app.py:206:4: E1111: Assigning result of a function call, where the function has no return (assignment-from-no-return)
+app.py:206:4: C0103: Constant name "user_model" doesn't conform to UPPER_CASE naming style (invalid-name)
+************* Module user_model
+user_model.py:18:0: C0301: Line too long (105/100) (line-too-long)
+user_model.py:19:0: C0301: Line too long (130/100) (line-too-long)
+user_model.py:22:0: C0301: Line too long (109/100) (line-too-long)
+user_model.py:43:13: W0612: Unused variable 'x_test' (unused-variable)
+user_model.py:43:30: W0612: Unused variable 'y_test' (unused-variable)
+************* Module modeling
+modeling.py:44:0: C0301: Line too long (129/100) (line-too-long)
+modeling.py:23:4: W0612: Unused variable 'fig' (unused-variable)
+modeling.py:41:4: W0612: Unused variable 'fig_hist' (unused-variable)
+modeling.py:175:0: R0914: Too many local variables (19/15) (too-many-locals)
+modeling.py:226:9: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
 
--------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 9.82/10, +0.18)
+------------------------------------------------------------------
+Your code has been rated at 9.25/10 (previous run: 9.21/10, +0.04)
 
