@@ -1,5 +1,5 @@
 ************* Module app
-app.py:136:0: C0301: Line too long (106/100) (line-too-long)
+app.py:137:0: C0301: Line too long (106/100) (line-too-long)
 ************* Module user_model
 user_model.py:18:0: C0301: Line too long (105/100) (line-too-long)
 user_model.py:19:0: C0301: Line too long (130/100) (line-too-long)
@@ -13,5 +13,5 @@ modeling.py:41:4: W0612: Unused variable 'fig_hist' (unused-variable)
 modeling.py:175:0: R0914: Too many local variables (19/15) (too-many-locals)
 
 ------------------------------------------------------------------
-Your code has been rated at 9.58/10 (previous run: 9.04/10, +0.54)
+Your code has been rated at 9.59/10 (previous run: 9.58/10, +0.01)
 
