@@ -14,7 +14,7 @@ def get_session_state():
 
 # Delete user model from previous sessions if it exists and this is a new session
 if not get_session_state():
-    user_model_path = 'user_model.pkl'
+    user_model_path = 'models/user_model.pkl'
     if os.path.exists(user_model_path):
         os.remove(user_model_path)
 
@@ -153,7 +153,7 @@ input_data['clarity'] = input_data['clarity'].map(clarity_mapping)
 if st.button("Predict"):
     if selected_model_name == 'UserModel':
         try:
-            selected_model = joblib.load("user_model.pkl")
+            selected_model = joblib.load("models/user_model.pkl")
         except FileNotFoundError:
             st.write("Please train your model first!")
             selected_model = None
@@ -183,3 +183,13 @@ with st.sidebar.expander("What should I upload?"):
     """)
 
 uploaded_file = st.sidebar.file_uploader("Upload your dataset (CSV)", type=["csv"])
+model_type = st.sidebar.selectbox("Select model to train", list(models.keys()))
+train_button = st.sidebar.button("Train Model")
+
+if uploaded_file and train_button:
+    data = pd.read_csv(uploaded_file)
+    st.sidebar.write("Dataset uploaded successfully!")
+    
+    # Train the selected model
+    user_model = train_user_model(data, model_type)
+    st.sidebar.success("Model trained and saved as user_model.pkl")
