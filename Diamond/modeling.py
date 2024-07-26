@@ -223,6 +223,6 @@ def train_and_evaluate_models(x_train, x_test, y_train, y_test):
     plot_residuals(y_tests, y_preds, model_names)
 
     # Save RMSE results to a text file
-    with open('Data/rmse_results.txt', 'w') as file:
+    with open('Data/rmse_results.txt', 'w', encoding='utf-8') as file:
         for name, rmse in rmse_results:
             file.write(f'RMSE for {name}: {rmse}\n')

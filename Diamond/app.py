@@ -1,6 +1,3 @@
-"""
-Importing necessary packages
-"""
 import os
 import streamlit as st
 import pandas as pd
@@ -8,6 +5,8 @@ import numpy as np
 import joblib
 from user_model import train_user_model
 
+# Define USER_MODEL_PATH at the top level
+USER_MODEL_PATH = 'models/user_model.pkl'
 
 def get_session_state():
     """
@@ -26,7 +25,6 @@ def get_session_state():
     return True
 
 if not get_session_state():
-    USER_MODEL_PATH = 'models/user_model.pkl'
     if os.path.exists(USER_MODEL_PATH):
         os.remove(USER_MODEL_PATH)
 
@@ -50,7 +48,7 @@ MODELS = {
 # Sidebar for model selection
 st.sidebar.title("Model Selection and Info")
 selected_name = st.sidebar.radio("Select Model", list(MODELS.keys()) + ['UserModel'])
-selected_model = MODELS.get(selected_name)
+SELECTED_MODEL = MODELS.get(selected_name)
 
 # Info tab for RMSE
 with st.sidebar.expander("What is the difference?"):
@@ -165,13 +163,13 @@ input_data['clarity'] = input_data['clarity'].map(clarity_mapping)
 if st.button("Predict"):
     if selected_name == 'UserModel':
         try:
-            selected_model = joblib.load(USER_MODEL_PATH)
+            SELECTED_MODEL = joblib.load(USER_MODEL_PATH)
         except FileNotFoundError:
             st.write("Please train your model first!")
-            selected_model = None
+            SELECTED_MODEL = None
 
-    if selected_model:
-        prediction = selected_model.predict(input_data)
+    if SELECTED_MODEL:
+        prediction = SELECTED_MODEL.predict(input_data)
         st.write(f"Predicted Price using {selected_name}: ${prediction[0]:.2f}")
 
 # Sidebar for training user model
@@ -188,20 +186,22 @@ with st.sidebar.expander("What should I upload?"):
     - clarity: a measurement of how clear the diamond is (I1 (Worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (Best))
     - depth: total depth percentage = z / mean(x, y)
     - table: width of top of diamond relative to widest point
+    - price: price in US dollars
     - x: length in mm
     - y: width in mm
     - z: depth in mm
-    - price: price in US dollars
     """)
 
 uploaded_file = st.sidebar.file_uploader("Upload your dataset (CSV)", type=["csv"])
 model_type = st.sidebar.selectbox("Select model to train", list(MODELS.keys()))
 train_button = st.sidebar.button("Train Model")
 
-if uploaded_file and train_button:
-    data = pd.read_csv(uploaded_file)
-    st.sidebar.write("Dataset uploaded successfully!")
-
-    # Train the selected model
-    user_model = train_user_model(data, model_type)
-    st.sidebar.success("Model trained and saved as user_model.pkl")
+if train_button:
+    if uploaded_file is None:
+        st.sidebar.write("Upload Dataset First")
+    else:
+        data = pd.read_csv(uploaded_file)
+        st.sidebar.write("Dataset uploaded successfully!")
+        train_user_model(data, model_type)
+        st.sidebar.write("Training Model...")
+        st.sidebar.success("Model trained and saved as user_model.pkl")
