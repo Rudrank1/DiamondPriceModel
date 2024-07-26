@@ -13,7 +13,7 @@ def plot_residuals(y_tests, y_preds, model_names):
     Plot residuals for each model and save to the 'Data' folder.
     """
 
-    fig, axes = plt.subplots(nrows=3, ncols=6, figsize=(24, 18))
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(24, 16))
     axes = axes.flatten()
     
     for i, (y_test, y_pred, model_name) in enumerate(zip(y_tests, y_preds, model_names)):
@@ -31,7 +31,7 @@ def plot_residuals(y_tests, y_preds, model_names):
     plt.close()
     
     # Plot histograms of residuals
-    fig_hist, axes_hist = plt.subplots(nrows=3, ncols=3, figsize=(18, 18))
+    fig_hist, axes_hist = plt.subplots(nrows=2, ncols=2, figsize=(18, 18))
     axes_hist = axes_hist.flatten()
 
     for i, (residuals, model_name) in enumerate(zip([y_test - y_pred for y_test, y_pred in zip(y_tests, y_preds)], model_names)):
